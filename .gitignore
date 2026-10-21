@@ -1,0 +1,8 @@
+.env
+logs/
+datalake/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.pdf
+*.docx
