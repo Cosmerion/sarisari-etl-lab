@@ -39,7 +39,7 @@ class PipelineChecks(unittest.TestCase):
                 self.assertEqual(len({(r['store_name'], r['barangay']) for r in rows}), 4)
                 self.assertEqual(len(pd.read_parquet(pipeline.transform(lake / 'raw/second', 'second'))), 19)
                 with (landing / 'sales_2026-10b.csv').open('a') as file:
-                    file.write('S023,2026-10-17,Tindahan ni Ramon,Barangay San Isidro,'
+                    file.write('S023,2026-10-17,Tindahan ni Alea,Barangay San Isidro,'
                                'Premium Rice,Groceries,1,12000.00\n')
                 with self.assertRaisesRegex(ValueError, 'Raw batch changed'):
                     pipeline.extract('second')

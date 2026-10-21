@@ -1,6 +1,7 @@
 .env
 logs/
 datalake/
+worksheet/evidence/
 __pycache__/
 .pytest_cache/
 *.pyc
