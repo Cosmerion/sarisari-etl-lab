@@ -22,6 +22,7 @@ class PipelineChecks(unittest.TestCase):
                 raw = pipeline.extract('first')
                 rows, rejected = pipeline.clean_rows(raw)
                 self.assertEqual((len(rows), len(rejected)), (13, 3))
+                original = {r['sale_id']: r.copy() for r in rows}
                 self.assertEqual({r[2] for r in rejected},
                                  {'missing/extra field', 'duplicate sale_id',
                                   'quantity and price must be positive'})
@@ -34,6 +35,7 @@ class PipelineChecks(unittest.TestCase):
                     (ROOT / 'data/exercise1/sales_2026-10b.csv').read_bytes())
                 rows, rejected = pipeline.clean_rows(pipeline.extract('second'))
                 self.assertEqual((len(rows), len(rejected)), (19, 5))
+                self.assertEqual({r['sale_id']: r for r in rows if r['sale_id'] in original}, original)
                 self.assertEqual(len({(r['store_name'], r['barangay']) for r in rows}), 4)
                 self.assertEqual(len(pd.read_parquet(pipeline.transform(lake / 'raw/second', 'second'))), 19)
                 with (landing / 'sales_2026-10b.csv').open('a') as file:
