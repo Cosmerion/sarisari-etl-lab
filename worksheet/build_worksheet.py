@@ -1,4 +1,5 @@
 """Fill the supplied worksheet with screenshots from this machine's actual runs."""
+import sys
 from datetime import date
 from io import BytesIO
 from pathlib import Path
@@ -11,7 +12,9 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / 'worksheet' / 'evidence'
 TEMPLATE = Path.home() / 'Downloads' / 'Student Lab Worksheet.docx'
-OUTPUT = ROOT / 'worksheet' / 'Masiglat_Alea_ETL-Lab.docx'
+PRIVACY_COPY = '--redact-username' in sys.argv
+OUTPUT = ROOT / 'worksheet' / ('Masiglat_Alea_ETL-Lab_COPY.docx' if PRIVACY_COPY
+                              else 'Masiglat_Alea_ETL-Lab.docx')
 
 doc = Document(TEMPLATE)
 doc.tables[0].cell(1, 0).text = 'Alea Masiglat'
@@ -73,13 +76,29 @@ images = {
 }
 
 
+# Exact locations of the account name in the terminal captures, not the output values.
+ACCOUNT_MASKS = {
+    'cp01_docker.png': [(7, 48, 78, 75), (150, 346, 218, 373)],
+    'cp02_stack.png': [(150, 254, 218, 281)],
+    'cp05_lake.png': [(150, 208, 218, 235)],
+    'cp06_warehouse.png': [(150, 506, 218, 533)],
+    'cp07_count.png': [(150, 231, 218, 258)],
+    'cp08_stores.png': [(150, 529, 218, 556)],
+}
+
+
 def add_image(cell, name, crop, width):
     with Image.open(EVIDENCE / name) as original:
         image = original.crop(crop)
+        if PRIVACY_COPY:
+            for x0, y0, x1, y1 in ACCOUNT_MASKS.get(name, []):
+                image.paste((75, 75, 75), (x0 - crop[0], y0 - crop[1], x1 - crop[0], y1 - crop[1]))
         stream = BytesIO()
         image.save(stream, format='PNG')
         stream.seek(0)
     cell.paragraphs[-1].add_run().add_picture(stream, width=Inches(width))
+    if PRIVACY_COPY and name in ACCOUNT_MASKS:
+        cell.add_paragraph('Local account name masked for privacy; the terminal prompt is still visible.')
 
 
 for number, (explanation, discussion) in enumerate(content, start=1):
